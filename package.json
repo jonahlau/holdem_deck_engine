@@ -1,0 +1,19 @@
+{
+  "name": "holdem_deck_engine",
+  "version": "1.0.0",
+  "description": "Texas Hold'em card and deck generator with hand analysis",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha "
+  },
+  "keywords": [
+    "poker",
+    "cards",
+    "poker-card",
+    "poker-game",
+    "poker-games",
+    "poker-hands"
+  ],
+  "author": "Jonathan Lau <j.nh.lau@gmail.com> (http://jonathanlau.me)",
+  "license": "MIT"
+}
