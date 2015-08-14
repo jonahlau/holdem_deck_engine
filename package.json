@@ -15,5 +15,8 @@
     "poker-hands"
   ],
   "author": "Jonathan Lau <j.nh.lau@gmail.com> (http://jonathanlau.me)",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "lodash": "^3.10.1"
+  }
 }

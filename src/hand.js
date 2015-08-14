@@ -1,6 +1,7 @@
 'use strict';
 
-var Card = require('./card');
+var Card = require('./card'),
+    _ = require('lodash');
 
 /**
  * Hand constructor
@@ -25,15 +26,31 @@ var Hand = function(cards) {
  * */
 
 var StraightFlush = function(cards) {
-
+  Hand.call(this, cards);
 };
 
-module.exports = Hand;
+extend(Hand, StraightFlush);
+
+StraightFlush.prototype.name = "Straight Flush";
+
+StraightFlush.prototype.make = function() {
+  _.find(this.suits, function())
+};
+
+module.exports = {
+  Hand : Hand,
+  StraightFlush : StraightFlush
+};
 
 
 /**
  * Private Helper Functions (Not exported)
  */
+
+function extend(parent, child) {
+  child.prototype = Object.create(parent.prototype);
+  child.prototype.constructor = child;
+}
 
 function generateCardsInHand(hand, cards) {
   hand.cardsInHand = cards.map(function(card) {
