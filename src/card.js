@@ -9,7 +9,7 @@
 var Card = function(value, suit) {
   this.value = value;
   this.suit = suit;
-  this.rank = this._values.indexOf(this.value);
+  this.rank = this._values.indexOf(this.value); // +1 so ranks start at 1 instead of 0
 };
 
 /**
