@@ -49,16 +49,12 @@ describe('Hand', function () {
         hand.suits.should.have.property('h');
         hand.suits['h'].length.should.equal(1);
 
-        hand.values.should.not.have.property(0);
-        hand.values.should.not.have.property(1);
-        hand.values.should.have.property(3);
-        hand.values.should.have.property(4);
-        hand.values.should.have.property(5);
-        hand.values.should.have.property(7);
         hand.values[3].should.have.length(1);
         hand.values[4].should.have.length(3);
         hand.values[5].should.have.length(2);
         hand.values[7].should.have.length(1);
+        should(hand.values[0]).equal(undefined);
+        should(hand.values[1]).equal(undefined);
     });
 });
 
@@ -181,15 +177,62 @@ describe('FullHouse constructor', function() {
   });
 });
 
+describe('ThreeOfAKind constructor', function() {
+    it('detects a two pair and chooses two highest kickers', function() {
+        var threeOfAKind = new ThreeOfAKind(['3c', '3d', '3h', '5s', 'Ac', '9s', 'Kd']);
+        threeOfAKind.isPossible().should.equal(true);
+        threeOfAKind.bestHand[0].value.should.equal('3');
+        threeOfAKind.bestHand[1].value.should.equal('3');
+        threeOfAKind.bestHand[2].value.should.equal('3');
+        threeOfAKind.bestHand[3].value.should.equal('A');
+        threeOfAKind.bestHand[threeOfAKind.bestHand.length-1].value.should.equal('K');
+    });
+
+    it('returns false for hands that are not three of a kind', function() {
+        var threeOfAKind = new ThreeOfAKind(['3c', '3d', '2h', '9s', '4c', '8s', '7d']);
+        threeOfAKind.isPossible().should.equal(false);
+    });
+});
 
 describe('TwoPair constructor', function() {
   it('detects a two pair and chooses the highest kicker', function() {
     var twoPair = new TwoPair(['3c', '3d', '5h', '5s', 'Ac', '9s', 'Kd']);
     twoPair.isPossible().should.equal(true);
+    twoPair.bestHand[0].value.should.equal('5');
+    twoPair.bestHand[1].value.should.equal('5');
+    twoPair.bestHand[2].value.should.equal('3');
+    twoPair.bestHand[3].value.should.equal('3');
+    twoPair.bestHand[twoPair.bestHand.length-1].value.should.equal('A');
   });
 
   it('returns false for hands that are not full houses', function() {
     var twoPair = new TwoPair(['3c', '3d', '2h', '3s', '4c', '8s', '7d']);
     twoPair.isPossible().should.equal(false);
   });
+
+  it('return highest two pairs if there are more than two pairs present', function() {
+    var twoPair = new TwoPair(['3c', '3d', 'Kh', 'Ks', '4c', '4s', '7d']);
+    twoPair.isPossible().should.equal(true);
+    twoPair.bestHand[0].value.should.equal('K');
+    twoPair.bestHand[1].value.should.equal('K');
+    twoPair.bestHand[2].value.should.equal('4');
+    twoPair.bestHand[3].value.should.equal('4');
+    twoPair.bestHand[4].value.should.equal('7');
+  });
+});
+
+describe('OnePair constructor', function() {
+    it('detects a one pair', function() {
+       var onePair = new OnePair(['8c', '6d', 'Kh', 'Ks', '4c', '4s', '7d']);
+        onePair.isPossible().should.equal(true);
+        console.log(onePair)
+    });
+});
+
+describe('HighCard constructor', function() {
+    it('detects a high card', function() {
+        var highCard = new HighCard(['8c', '6d', 'Kh', 'As', '4c', '4s', '7d']);
+        highCard.isPossible().should.equal(true);
+        console.log(highCard);
+    });
 });

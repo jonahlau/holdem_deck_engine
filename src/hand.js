@@ -111,16 +111,8 @@ FullHouse.prototype.isPossible = function() {
   if (this._isPossible) { return true; }
 
   var fullHousePossible,
-      threeOfAKinds = this.values.filter(function(value) {
-        if (value) {
-          return value.length === 3;
-        }
-      }),
-      onePairs = this.values.filter(function(value) {
-        if (value) {
-          return value.length === 2;
-        }
-      });
+      threeOfAKinds = filterByNumberOfCards(3, this),
+      onePairs = filterByNumberOfCards(2, this);
 
   if (!_.isEmpty(threeOfAKinds) && !_.isEmpty(onePairs)) {
     fullHousePossible = true;
@@ -240,7 +232,6 @@ Straight.prototype.isPossible = function() {
 
 function ThreeOfAKind(cards) {
   Hand.call(this, cards);
-
 }
 
 extend(Hand, ThreeOfAKind);
@@ -250,8 +241,20 @@ ThreeOfAKind.prototype.name = 'Three Of A Kind';
 ThreeOfAKind.prototype.rank = 3;
 
 ThreeOfAKind.prototype.isPossible = function() {
-  var possibleStraight;
+  if (this._isPossible) { return true; }
+  var possibleThreeOfAKind, topKicker, secondKicker,
+      singles = filterByNumberOfCards(1, this),
+      threeOfAKinds = filterByNumberOfCards(3, this);
 
+  if (!_.isEmpty(threeOfAKinds)) {
+    possibleThreeOfAKind = true;
+    this._isPossible = true;
+    topKicker = singles[singles.length-1];
+    secondKicker = singles[singles.length-2];
+    this.bestHand = threeOfAKinds[threeOfAKinds.length-1].concat(topKicker).concat(secondKicker);
+  }
+
+  return possibleThreeOfAKind || false;
 };
 
 /**
@@ -261,7 +264,6 @@ ThreeOfAKind.prototype.isPossible = function() {
 
 function TwoPair(cards) {
   Hand.call(this, cards);
-
 }
 
 extend(Hand, TwoPair);
@@ -271,9 +273,22 @@ TwoPair.prototype.name = 'Two Pair';
 TwoPair.prototype.rank = 2;
 
 TwoPair.prototype.isPossible = function() {
-  var possibleStraight,
-      onePairs = this.values.filter;
+  if (this._isPossible) { return true; }
 
+  var possibleStraight, topPair, secondPair, kicker,
+      singles = filterByNumberOfCards(1, this),
+      onePairs = filterByNumberOfCards(2, this);
+
+  if (onePairs.length >= 2) {
+    topPair = onePairs[onePairs.length-1];
+    secondPair = onePairs[onePairs.length -2];
+    kicker = singles[singles.length -1];
+    this.bestHand = topPair.concat(secondPair).concat(kicker);
+    this._isPossible = true;
+    possibleStraight = true;
+  }
+
+  return possibleStraight || false;
 };
 
 
@@ -284,7 +299,6 @@ TwoPair.prototype.isPossible = function() {
 
 function OnePair(cards) {
   Hand.call(this, cards);
-
 }
 
 extend(Hand, OnePair);
@@ -294,8 +308,22 @@ OnePair.prototype.name = 'One Pair';
 OnePair.prototype.rank = 1;
 
 OnePair.prototype.isPossible = function() {
-  var possibleStraight;
+  if (this._isPossible) { return true; }
 
+  var possibleOnePair, topThreeSingles,
+      singles = filterByNumberOfCards(1, this),
+      onePairs = filterByNumberOfCards(2, this);
+
+  if (!_.isEmpty(onePairs)) {
+    possibleOnePair = true;
+    this._isPossible = true;
+
+    topThreeSingles = singles[singles.length-1].concat(singles[singles.length-2]).concat(singles[singles.length-3]);
+
+    this.bestHand = onePairs[onePairs.length - 1].concat(topThreeSingles);
+  }
+
+  return possibleOnePair || false;
 };
 
 /**
@@ -305,7 +333,6 @@ OnePair.prototype.isPossible = function() {
 
 function HighCard(cards) {
   Hand.call(this, cards);
-
 }
 
 extend(Hand, HighCard);
@@ -315,8 +342,15 @@ HighCard.prototype.name = 'High Card';
 HighCard.prototype.rank = 0;
 
 HighCard.prototype.isPossible = function() {
-  var possibleStraight;
+  var definedValues = this.values.filter(function(value) {
+    return typeof value !== 'undefined';
+  });
 
+  for (var i = definedValues.length - 1; i > 1; i--) {
+    this.bestHand.push(definedValues[i]);
+  }
+
+  return true;
 };
 
 module.exports = {
@@ -335,6 +369,14 @@ module.exports = {
 /**
  * Private Helper Functions (Not exported)
  */
+
+function filterByNumberOfCards(numberToFilter, hand) {
+  return hand.values.filter(function(value) {
+    if (value) {
+      return value.length === numberToFilter;
+    }
+  });
+}
 
 function extend(parent, child) {
   child.prototype = Object.create(parent.prototype);
