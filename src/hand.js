@@ -14,6 +14,7 @@ function Hand(cards) {
   this.bestHand = [];
   this.suits = {};
   this.values = [];
+  this._isPossible = null;
 
   generateCardsInHand(this, cards);
   sortCardsInHand(this);
@@ -36,11 +37,22 @@ StraightFlush.prototype.name = 'Straight Flush';
 StraightFlush.prototype.rank = 8;
 
 StraightFlush.prototype.isPossible = function() {
-  var possibleStraight;
+  if (this._isPossible) { return true; }
 
-  _.find(this.suits, function() {})
+  var flush,
+      straightFlushPossible,
+      straight = new Straight(this.allCards);
+
+  if (straight.isPossible()) {
+    flush = new Flush(straight.bestHand);
+    if (flush.isPossible()) {
+      this.bestHand = flush.bestHand;
+      straightFlushPossible = true;
+      this._isPossible = true;
+    }
+  }
+  return straightFlushPossible || false;
 };
-
 
 /**
  * FourOfAKind constructor
@@ -58,8 +70,25 @@ FourOfAKind.prototype.name = 'Four of a Kind';
 FourOfAKind.prototype.rank = 7;
 
 FourOfAKind.prototype.isPossible = function() {
-  var possibleStraight
+  if (this._isPossible) { return true; }
 
+  var fourOfAKindPossible,
+      definedValues = this.values.filter(function(value) {
+        if (value) {
+          return value;
+        }
+      });
+
+  for (var i=0; i<this.values.length; i++) {
+    if (this.values[i] && this.values[i].length === 4) {
+      fourOfAKindPossible = true;
+      this._isPossible = true;
+      this.bestHand = this.values[i]
+      this.bestHand.push(definedValues[definedValues.length-1][0]);
+      break;
+    }
+  }
+  return fourOfAKindPossible || false;
 };
 
 
@@ -74,15 +103,37 @@ function FullHouse(cards) {
 
 extend(Hand, FullHouse);
 
-FourOfAKind.prototype.name = 'Full House';
+FullHouse.prototype.name = 'Full House';
 
-FourOfAKind.prototype.rank = 6;
+FullHouse.prototype.rank = 6;
 
-FourOfAKind.prototype.isPossible = function() {
-  var possibleStraight
+FullHouse.prototype.isPossible = function() {
+  if (this._isPossible) { return true; }
 
+  var fullHousePossible,
+      threeOfAKinds = this.values.filter(function(value) {
+        if (value) {
+          return value.length === 3;
+        }
+      }),
+      onePairs = this.values.filter(function(value) {
+        if (value) {
+          return value.length === 2;
+        }
+      });
+
+  if (!_.isEmpty(threeOfAKinds) && !_.isEmpty(onePairs)) {
+    fullHousePossible = true;
+    this._isPossible = true;
+
+    this.bestHand = threeOfAKinds[threeOfAKinds.length-1];
+    onePairs[onePairs.length - 1].forEach((function(cardInPair) {
+      this.bestHand.push(cardInPair);
+    }).bind(this));
+  }
+
+  return fullHousePossible || false;
 };
-
 
 /**
  * Flush constructor
@@ -100,10 +151,13 @@ Flush.prototype.name = 'Flush';
 Flush.prototype.rank = 5;
 
 Flush.prototype.isPossible = function() {
+  if (this._isPossible) { return true; }
+
   var possibleFlush = false;
   for (var suit in this.suits) {
     if (this.suits[suit].length >= 5) {
       possibleFlush = true;
+      this._isPossible = true;
 
       switch(this.suits[suit].length) {
         case 6:
@@ -140,11 +194,17 @@ Straight.prototype.name = 'Straight';
 Straight.prototype.rank = 4;
 
 Straight.prototype.isPossible = function() {
-  var possibleStraight, continuousCardCount, rankDiff;
-  //
-  //var aceFound = this.allCards.filter(function(card) {
-  //  return
-  //})
+  if (this._isPossible) { return true; }
+
+  var possibleStraight, rankDiff, aceIndex;
+
+  aceIndex = _.findIndex(this.allCards, function(card) {
+    return card.value === 'A';
+  });
+
+  if (aceIndex >= 0) {
+    this.allCards.unshift(new Card('1', this.allCards[aceIndex].suit));
+  }
 
   for (var i = this.allCards.length - 1; i > -1; i--) {
     var previousCard = this.bestHand[this.bestHand.length - 1],
@@ -165,6 +225,7 @@ Straight.prototype.isPossible = function() {
 
     if (this.bestHand.length === 5) {
       possibleStraight = true;
+      this._isPossible = true;
       break;
     }
   }
@@ -210,7 +271,8 @@ TwoPair.prototype.name = 'Two Pair';
 TwoPair.prototype.rank = 2;
 
 TwoPair.prototype.isPossible = function() {
-  var possibleStraight;
+  var possibleStraight,
+      onePairs = this.values.filter;
 
 };
 
