@@ -10,10 +10,9 @@ var should = require('should'),
     OnePair = require('../src/hand').OnePair,
     HighCard = require('../src/hand').HighCard;
 
-describe('Hand', function () {
+describe('Hand constructor', function () {
     it('should create a hand with given 7 cards', function () {
         var hand = new Hand(['5c', '4c', '2d', '7s', '5s', '5c', '6d']);
-
         hand.allCards.length.should.equal(7);
         hand.allCards[0].value.should.equal('2');
         hand.allCards[0].suit.should.equal('d');
@@ -56,14 +55,45 @@ describe('Hand', function () {
         should(hand.values[0]).equal(undefined);
         should(hand.values[1]).equal(undefined);
     });
+
+    it('should find the best hand given 7 cards', function() {
+        var hand = Hand.make(['3c', '9c', '5c', '6c', '7c', 'Ah', 'As']);
+        var hand2 = Hand.make(['3c', '4d', '5s', '6h', '7s', 'Ac', 'Ad']);
+
+        hand.name.should.equal('Flush');
+        hand.toString().should.equal('3c,5c,6c,7c,9c');
+
+        hand2.name.should.equal('Straight');
+        hand2.toString().should.equal(('3c,4d,5s,6h,7s'));
+    });
+
+    it('compares two hands and chooses the winning hand', function() {
+      var lowerStraight = Hand.make(['8c', '7d', '6h', '5s', '4c', 'Ks', 'Kd']),
+          higherStraight = Hand.make(['Ac', 'Kd', 'Qh', 'Js', 'Tc', '4s', '4d']),
+          fullHouse = Hand.make(['Kc', 'Kd', 'Ks', 'As', 'Ad', '9d', '3c']);
+
+      lowerStraight.compare(higherStraight).should.equal(-1);
+      fullHouse.compare(higherStraight).should.equal(1);
+    });
+
+    it('compares two hands and accounts for higher kicker', function() {
+      var highKicker = Hand.make(['Kc', 'Kd', 'Ah', '5s', '6d', '2s', '7d']),
+          lowerKicker = Hand.make(['Kc', 'Kd', 'Qh', '5s', '6d', '2s', '7d']),
+          threeOfAKindHi = Hand.make(['Kc', 'Kd', 'Kh', 'Ad', '3c', '2s']),
+          threeOfAKindLow = Hand.make(['Kc', 'Kd', 'Kh', 'Qd', '6c', '2s']);
+
+      lowerKicker.compare(highKicker).should.equal(-1);
+      threeOfAKindHi.compare(threeOfAKindLow).should.equal(1);
+    });
 });
 
 describe('Flush constructor', function() {
   it('detects a flush', function() {
     var flush = new Flush(['3c', '9c', '5c', '6c', '7c', 'Ah', 'As']);
+    flush.should.have.property('_isPossible');
+    flush['_isPossible'].should.equal(true);
     flush.isPossible().should.equal(true);
     flush.bestHand.length.should.equal(5);
-
   });
 
   it('detects a flush and pushes only 5 cards to the bestHand array if there are more than 5 that make the flush', function() {
@@ -76,6 +106,8 @@ describe('Flush constructor', function() {
 describe('Straight constructor', function() {
   it('detects a straight', function() {
     var straight = new Straight(['3c', '4d', '5s', '6h', '7s', 'Ac', 'Ad']);
+    straight.should.have.property('_isPossible');
+    straight['_isPossible'].should.equal(true);
     straight.isPossible().should.equal(true);
   });
 
@@ -88,12 +120,12 @@ describe('Straight constructor', function() {
     var straight = new Straight(['Kc', '2d', '3s', '4h', '5s', 'Ac', '5d']);
     straight.isPossible().should.equal(true);
     straight.bestHand.length.should.equal(5);
-    straight.bestHand[4].rank.should.equal(0);
-    straight.bestHand[4].value.should.equal('A');
-    straight.bestHand[3].value.should.equal('2');
+    straight.bestHand[0].rank.should.equal(0);
+    straight.bestHand[0].value.should.equal('A');
+    straight.bestHand[1].value.should.equal('2');
     straight.bestHand[2].value.should.equal('3');
-    straight.bestHand[1].value.should.equal('4');
-    straight.bestHand[0].value.should.equal('5');
+    straight.bestHand[3].value.should.equal('4');
+    straight.bestHand[4].value.should.equal('5');
   });
 
   it('detects the highest possible straight', function() {
@@ -110,6 +142,8 @@ describe('Straight constructor', function() {
 describe('StraighFlush constructor', function() {
   it('detects a straight flush', function() {
     var straightFlush = new StraightFlush(['3c', '4c', '5c', '6c', '7c', 'As', 'Ad']);
+    straightFlush.should.have.property('_isPossible');
+    straightFlush['_isPossible'].should.equal(true);
     straightFlush.isPossible().should.equal(true);
     straightFlush.bestHand.length.should.equal(5);
   });
@@ -134,6 +168,8 @@ describe('StraighFlush constructor', function() {
 describe('FourOfAKind constructor', function() {
   it('detects a four of a kind and chooses the highest kicker', function() {
     var fourOfAKind1 = new FourOfAKind(['3c', '3d', '3h', '3s', '7c', 'As', 'Ad']);
+    fourOfAKind1.should.have.property('_isPossible');
+    fourOfAKind1['_isPossible'].should.equal(true);
     fourOfAKind1.isPossible().should.equal(true);
     fourOfAKind1.bestHand.length.should.equal(5);
     fourOfAKind1.bestHand[0].value.should.equal('3');
@@ -143,6 +179,8 @@ describe('FourOfAKind constructor', function() {
     fourOfAKind1.bestHand[fourOfAKind1.bestHand.length-1].value.should.equal('A');
 
     var fourOfAKind2 = new FourOfAKind(['3c', '3h', '3s', '7c', 'Ks', 'Qd', '3d']);
+    fourOfAKind2.should.have.property('_isPossible');
+    fourOfAKind2['_isPossible'].should.equal(true);
     fourOfAKind2.isPossible().should.equal(true);
     fourOfAKind2.bestHand.length.should.equal(5);
     fourOfAKind1.bestHand[0].value.should.equal('3');
@@ -162,6 +200,8 @@ describe('FourOfAKind constructor', function() {
 describe('FullHouse constructor', function() {
   it('detects a full house and chooses the highest pair kicker', function() {
     var fullHouse1 = new FullHouse(['3c', '3d', '3h', '4s', '4c', '7s', '7d']);
+    fullHouse1.should.have.property('_isPossible');
+    fullHouse1['_isPossible'].should.equal(true);
     fullHouse1.isPossible().should.equal(true);
     fullHouse1.bestHand.length.should.equal(5);
     fullHouse1.bestHand[0].value.should.equal('3');
@@ -180,12 +220,14 @@ describe('FullHouse constructor', function() {
 describe('ThreeOfAKind constructor', function() {
     it('detects a two pair and chooses two highest kickers', function() {
         var threeOfAKind = new ThreeOfAKind(['3c', '3d', '3h', '5s', 'Ac', '9s', 'Kd']);
+        threeOfAKind.should.have.property('_isPossible');
+        threeOfAKind['_isPossible'].should.equal(true);
         threeOfAKind.isPossible().should.equal(true);
-        threeOfAKind.bestHand[0].value.should.equal('3');
-        threeOfAKind.bestHand[1].value.should.equal('3');
+        threeOfAKind.bestHand[4].value.should.equal('3');
+        threeOfAKind.bestHand[3].value.should.equal('3');
         threeOfAKind.bestHand[2].value.should.equal('3');
-        threeOfAKind.bestHand[3].value.should.equal('A');
-        threeOfAKind.bestHand[threeOfAKind.bestHand.length-1].value.should.equal('K');
+        threeOfAKind.bestHand[1].value.should.equal('A');
+        threeOfAKind.bestHand[0].value.should.equal('K');
     });
 
     it('returns false for hands that are not three of a kind', function() {
@@ -197,12 +239,14 @@ describe('ThreeOfAKind constructor', function() {
 describe('TwoPair constructor', function() {
   it('detects a two pair and chooses the highest kicker', function() {
     var twoPair = new TwoPair(['3c', '3d', '5h', '5s', 'Ac', '9s', 'Kd']);
+    twoPair.should.have.property('_isPossible');
+    twoPair['_isPossible'].should.equal(true);
     twoPair.isPossible().should.equal(true);
-    twoPair.bestHand[0].value.should.equal('5');
-    twoPair.bestHand[1].value.should.equal('5');
+    twoPair.bestHand[4].value.should.equal('5');
+    twoPair.bestHand[3].value.should.equal('5');
     twoPair.bestHand[2].value.should.equal('3');
-    twoPair.bestHand[3].value.should.equal('3');
-    twoPair.bestHand[twoPair.bestHand.length-1].value.should.equal('A');
+    twoPair.bestHand[1].value.should.equal('3');
+    twoPair.bestHand[0].value.should.equal('A');
   });
 
   it('returns false for hands that are not full houses', function() {
@@ -213,26 +257,33 @@ describe('TwoPair constructor', function() {
   it('return highest two pairs if there are more than two pairs present', function() {
     var twoPair = new TwoPair(['3c', '3d', 'Kh', 'Ks', '4c', '4s', '7d']);
     twoPair.isPossible().should.equal(true);
-    twoPair.bestHand[0].value.should.equal('K');
-    twoPair.bestHand[1].value.should.equal('K');
+    twoPair.bestHand[4].value.should.equal('K');
+    twoPair.bestHand[3].value.should.equal('K');
     twoPair.bestHand[2].value.should.equal('4');
-    twoPair.bestHand[3].value.should.equal('4');
-    twoPair.bestHand[4].value.should.equal('7');
+    twoPair.bestHand[1].value.should.equal('4');
+    twoPair.bestHand[0].value.should.equal('7');
   });
 });
 
 describe('OnePair constructor', function() {
     it('detects a one pair', function() {
        var onePair = new OnePair(['8c', '6d', 'Kh', 'Ks', '4c', '4s', '7d']);
+        onePair.should.have.property('_isPossible');
+        onePair['_isPossible'].should.equal(true);
         onePair.isPossible().should.equal(true);
-        console.log(onePair)
     });
 });
 
 describe('HighCard constructor', function() {
     it('detects a high card', function() {
         var highCard = new HighCard(['8c', '6d', 'Kh', 'As', '4c', '4s', '7d']);
+        highCard.should.have.property('_isPossible');
+        highCard['_isPossible'].should.equal(true);
         highCard.isPossible().should.equal(true);
-        console.log(highCard);
+        highCard.bestHand[4].value.should.equal('A');
+        highCard.bestHand[3].value.should.equal('K');
+        highCard.bestHand[2].value.should.equal('8');
+        highCard.bestHand[1].value.should.equal('7');
+        highCard.bestHand[0].value.should.equal('6');
     });
 });

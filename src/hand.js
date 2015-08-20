@@ -21,6 +21,70 @@ function Hand(cards) {
   populateValuesSuits(this);
 }
 
+Hand.prototype.compare = function(compareHand) {
+  var i = 4,
+      result = 0;
+
+  if (this.rank < compareHand.rank) {
+    return -1;
+  } else if (this.rank > compareHand.rank) {
+    return 1;
+  }
+
+  while (i >= 0) {
+    if (this.bestHand[i].rank < compareHand.bestHand[i].rank) {
+      result = -1;
+      break;
+    } else if (this.bestHand[i].rank > compareHand.bestHand[i].rank) {
+      result = 1;
+      break;
+    }
+    i--;
+  }
+
+  return result;
+};
+
+Hand.prototype.beats = function(compareHand) {
+  if (this.compare(compareHand) > 0) {
+    return true;
+  }
+  return false;
+};
+
+Hand.prototype.losesTo = function(compareHand) {
+  if (this.compare(compareHand) < 0) {
+    return true;
+  }
+  return false;
+};
+
+Hand.prototype.ties = function(compareHand) {
+  if (this.compare(compareHand) === 0) {
+    return true;
+  }
+  return false;
+};
+
+Hand.prototype.toString = function() {
+  return this.bestHand.map(function(card) {
+    return card.value + card.suit;
+  }).join(',');
+};
+
+Hand.make = function(cards) {
+  var handTypes = [StraightFlush, FourOfAKind, FullHouse, Flush, Straight, ThreeOfAKind, TwoPair, OnePair, HighCard];
+
+  for (var i = 0; i < handTypes.length; i++) {
+    var hand = handTypes[i];
+    hand = new hand(cards);
+
+    if (hand.isPossible()) {
+      return hand;
+    }
+  }
+};
+
 /**
  * StraightFlush constructor
  * @constructor
@@ -28,6 +92,7 @@ function Hand(cards) {
 
 function StraightFlush(cards) {
   Hand.call(this, cards);
+  this.isPossible();
 }
 
 extend(Hand, StraightFlush);
@@ -47,6 +112,7 @@ StraightFlush.prototype.isPossible = function() {
     flush = new Flush(straight.bestHand);
     if (flush.isPossible()) {
       this.bestHand = flush.bestHand;
+      this.bestHand.reverse();
       straightFlushPossible = true;
       this._isPossible = true;
     }
@@ -61,6 +127,7 @@ StraightFlush.prototype.isPossible = function() {
 
 function FourOfAKind(cards) {
   Hand.call(this, cards);
+  this.isPossible();
 }
 
 extend(Hand, FourOfAKind);
@@ -99,6 +166,7 @@ FourOfAKind.prototype.isPossible = function() {
 
 function FullHouse(cards) {
   Hand.call(this, cards);
+  this.isPossible();
 }
 
 extend(Hand, FullHouse);
@@ -134,6 +202,7 @@ FullHouse.prototype.isPossible = function() {
 
 function Flush(cards) {
   Hand.call(this, cards);
+  this.isPossible();
 }
 
 extend(Hand, Flush);
@@ -145,7 +214,7 @@ Flush.prototype.rank = 5;
 Flush.prototype.isPossible = function() {
   if (this._isPossible) { return true; }
 
-  var possibleFlush = false;
+  var possibleFlush;
   for (var suit in this.suits) {
     if (this.suits[suit].length >= 5) {
       possibleFlush = true;
@@ -162,11 +231,10 @@ Flush.prototype.isPossible = function() {
           this.bestHand = this.suits[suit];
           break;
       }
-
       break;
     }
   }
-  return possibleFlush;
+  return possibleFlush || false;
 };
 
 
@@ -177,6 +245,7 @@ Flush.prototype.isPossible = function() {
 
 function Straight(cards) {
   Hand.call(this, cards);
+  this.isPossible();
 }
 
 extend(Hand, Straight);
@@ -218,6 +287,7 @@ Straight.prototype.isPossible = function() {
     if (this.bestHand.length === 5) {
       possibleStraight = true;
       this._isPossible = true;
+      this.bestHand.reverse();
       break;
     }
   }
@@ -232,6 +302,7 @@ Straight.prototype.isPossible = function() {
 
 function ThreeOfAKind(cards) {
   Hand.call(this, cards);
+  this.isPossible();
 }
 
 extend(Hand, ThreeOfAKind);
@@ -251,7 +322,7 @@ ThreeOfAKind.prototype.isPossible = function() {
     this._isPossible = true;
     topKicker = singles[singles.length-1];
     secondKicker = singles[singles.length-2];
-    this.bestHand = threeOfAKinds[threeOfAKinds.length-1].concat(topKicker).concat(secondKicker);
+    this.bestHand = secondKicker.concat(topKicker).concat(threeOfAKinds[threeOfAKinds.length-1]);
   }
 
   return possibleThreeOfAKind || false;
@@ -264,6 +335,7 @@ ThreeOfAKind.prototype.isPossible = function() {
 
 function TwoPair(cards) {
   Hand.call(this, cards);
+  this.isPossible();
 }
 
 extend(Hand, TwoPair);
@@ -283,7 +355,7 @@ TwoPair.prototype.isPossible = function() {
     topPair = onePairs[onePairs.length-1];
     secondPair = onePairs[onePairs.length -2];
     kicker = singles[singles.length -1];
-    this.bestHand = topPair.concat(secondPair).concat(kicker);
+    this.bestHand = kicker.concat(secondPair).concat(topPair);
     this._isPossible = true;
     possibleStraight = true;
   }
@@ -299,6 +371,7 @@ TwoPair.prototype.isPossible = function() {
 
 function OnePair(cards) {
   Hand.call(this, cards);
+  this.isPossible();
 }
 
 extend(Hand, OnePair);
@@ -318,9 +391,9 @@ OnePair.prototype.isPossible = function() {
     possibleOnePair = true;
     this._isPossible = true;
 
-    topThreeSingles = singles[singles.length-1].concat(singles[singles.length-2]).concat(singles[singles.length-3]);
+    topThreeSingles = singles[singles.length-3].concat(singles[singles.length-2]).concat(singles[singles.length-1]);
 
-    this.bestHand = onePairs[onePairs.length - 1].concat(topThreeSingles);
+    this.bestHand = topThreeSingles.concat(onePairs[onePairs.length - 1]);
   }
 
   return possibleOnePair || false;
@@ -333,6 +406,7 @@ OnePair.prototype.isPossible = function() {
 
 function HighCard(cards) {
   Hand.call(this, cards);
+  this.isPossible();
 }
 
 extend(Hand, HighCard);
@@ -342,12 +416,18 @@ HighCard.prototype.name = 'High Card';
 HighCard.prototype.rank = 0;
 
 HighCard.prototype.isPossible = function() {
-  var definedValues = this.values.filter(function(value) {
-    return typeof value !== 'undefined';
-  });
+  if (this._isPossible) { return true; }
 
-  for (var i = definedValues.length - 1; i > 1; i--) {
-    this.bestHand.push(definedValues[i]);
+  this._isPossible = true;
+
+  var i = 5,
+      definedValues = this.values.filter(function(value) {
+        return typeof value !== 'undefined';
+      });
+
+  definedValues = _.flatten(definedValues);
+  while(i--) {
+    this.bestHand.unshift(definedValues.pop());
   }
 
   return true;
