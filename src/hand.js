@@ -85,6 +85,29 @@ Hand.make = function(cards) {
   }
 };
 
+Hand.pickWinners = function(hands) {
+  var currCardLoses = false,
+      arrayOfRanks = hands.map(function(hand) {
+        return hand.rank;
+      }).sort(),
+      highestRank = arrayOfRanks[arrayOfRanks.length-1],
+      highestHands = hands.filter(function(hand) {
+        return hand.rank === highestRank;
+      });
+
+  var winners = highestHands.filter(function(hand) {
+    for (var i = 0, len=highestHands.length; i<len; i++) {
+      if (hand.losesTo(highestHands[i])) {
+        currCardLoses = true;
+        break;
+      }
+      return !currCardLoses;
+    }
+  });
+
+  return winners;
+};
+
 /**
  * StraightFlush constructor
  * @constructor
