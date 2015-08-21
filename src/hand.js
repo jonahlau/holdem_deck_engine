@@ -4,7 +4,7 @@ var Card = require('./card'),
     _ = require('lodash');
 
 /**
- * Hand constructor
+ * Hand constructor - creates a new hand given an array of cards.
  * @constructor
  * @param {Array} cards - Array of 7 cards in object form or represented as a string (e.g. '7h')
  * */
@@ -14,6 +14,7 @@ function Hand(cards) {
   this.bestHand = [];
   this.suits = {};
   this.values = [];
+  //the _isPossible property is a flag for whether the isPossible function for a particular instance of Hand has already been called
   this._isPossible = null;
 
   generateCardsInHand(this, cards);
@@ -21,16 +22,25 @@ function Hand(cards) {
   populateValuesSuits(this);
 }
 
+/**
+ * Hand.prototype.compare - method available on all instances of Hand / instances that inherit from Hand, compares 'this' hand against one other Hand
+ * @param {Object} compareHand - this parameter must be an instance of Hand otherwise it will not work
+ * */
+
 Hand.prototype.compare = function(compareHand) {
   var i = 4,
       result = 0;
 
+  //first compare which hand's rank is higher, if one is higher than the other, return the comparison result
+  //result of 1 means 'this' hand is higher than the other hand and vice versa means 'this' hand is lower rank than the other hand
   if (this.rank < compareHand.rank) {
     return -1;
   } else if (this.rank > compareHand.rank) {
     return 1;
   }
 
+  //this loop only runs if the two hands' ranks are the same.  If the same, loop from the last item from both hands and the first hand to have a card lower than the other wins.
+  //if there is no winner, return 0
   while (i >= 0) {
     if (this.bestHand[i].rank < compareHand.bestHand[i].rank) {
       result = -1;
@@ -42,6 +52,7 @@ Hand.prototype.compare = function(compareHand) {
     i--;
   }
 
+  //return 1 (if 'this' hand wins), -1 (if 'this' hand loses) or 0 if it is a tie
   return result;
 };
 
@@ -66,11 +77,18 @@ Hand.prototype.ties = function(compareHand) {
   return false;
 };
 
+//sample output - 'Ac,Ad,Kc,5s,3d,9s,10h'
 Hand.prototype.toString = function() {
   return this.bestHand.map(function(card) {
     return card.value + card.suit;
   }).join(',');
 };
+
+/**
+ * Hand.make takes an array of cards and goes through to find the highest possible hand
+ * @param {Array} cards - takes an array of strings (accepted format: 'Ac' for 'Ace of Clubs') or an array of 7 instances of Cards
+ * @returns {Object} returns a hand
+ * */
 
 Hand.make = function(cards) {
   var handTypes = [StraightFlush, FourOfAKind, FullHouse, Flush, Straight, ThreeOfAKind, TwoPair, OnePair, HighCard];
@@ -86,8 +104,7 @@ Hand.make = function(cards) {
 };
 
 Hand.pickWinners = function(hands) {
-  var currCardLoses = false,
-      arrayOfRanks = hands.map(function(hand) {
+  var arrayOfRanks = hands.map(function(hand) {
         return hand.rank;
       }).sort(),
       highestRank = arrayOfRanks[arrayOfRanks.length-1],
@@ -95,10 +112,10 @@ Hand.pickWinners = function(hands) {
         return hand.rank === highestRank;
       });
 
-  var winners = highestHands.filter(function(hand) {
+  var winners = highestHands.filter(function(currHand) {
     for (var i = 0, len=highestHands.length; i<len; i++) {
-      if (hand.losesTo(highestHands[i])) {
-        currCardLoses = true;
+      if (currHand.losesTo(highestHands[i])) {
+        var currCardLoses = true; //if the current hand being looped over by the filter method loses to any other hand of the same rank, it does not get included in the winners array
         break;
       }
       return !currCardLoses;
@@ -173,7 +190,7 @@ FourOfAKind.prototype.isPossible = function() {
     if (this.values[i] && this.values[i].length === 4) {
       fourOfAKindPossible = true;
       this._isPossible = true;
-      this.bestHand = this.values[i]
+      this.bestHand = this.values[i];
       this.bestHand.push(definedValues[definedValues.length-1][0]);
       break;
     }
@@ -481,14 +498,17 @@ function filterByNumberOfCards(numberToFilter, hand) {
   });
 }
 
+//method used to create prototypical inheritance between a parent and child class
 function extend(parent, child) {
   child.prototype = Object.create(parent.prototype);
   child.prototype.constructor = child;
 }
 
+//function that runs everytime a hand is created to populate the 'allCards' array
 function generateCardsInHand(hand, cards) {
   hand.allCards = cards.map(function(card) {
     if (typeof card === 'string') {
+      //calls the 'Card' constructor to create new cards if necessary
       return new Card(card.substring(0,1), card.substring(1));
     } else {
       return card;
@@ -496,6 +516,7 @@ function generateCardsInHand(hand, cards) {
   });
 }
 
+//sorts the 'allCards' array so the order is lowest cards first, highest cards last
 function sortCardsInHand(hand) {
   hand.allCards.sort(function(a,b) {
     if (a.rank > b.rank) {
@@ -508,6 +529,7 @@ function sortCardsInHand(hand) {
   });
 }
 
+//plucks each value and adds to the 'suits' key value store on each hand object
 function populateValuesSuits(hand) {
   hand.allCards.forEach((function(card) {
     if (!this.suits.hasOwnProperty(card.suit)) {
