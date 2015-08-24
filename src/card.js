@@ -13,25 +13,26 @@ var Card = function(value, suit) {
 };
 
 /**
-* List of all available card values from 2 to Ace
-* */
+ * List of all available card values from 2 to Ace
+ * '1' is for detection of a Wheel straight (i.e. A,2,3,4,5)
+ * */
 
 Card.prototype._values = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'];
 
 /**
-* List of all available suits
-* 'S' - Spades
-* 'H' - Hearts
-* 'D' - Diamonds
-* 'C' - Clubs
-* */
+ * List of all available suits
+ * 's' - Spades
+ * 'h' - Hearts
+ * 'd' - Diamonds
+ * 'c' - Clubs
+ * */
 
 Card.prototype._suits = ['s', 'h', 'c', 'd'];
 
 /**
-* Replaces toString method on all instances of Card.
-* Sample output: "Two of Spades" would output "2S"
-* */
+ * Replaces toString method on all instances of Card.
+ * Sample output: "Two of Spades" would output "2S"
+ * */
 
 Card.prototype.toString = function() {
   return "" + this.value + this.suit;

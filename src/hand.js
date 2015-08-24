@@ -56,6 +56,12 @@ Hand.prototype.compare = function(compareHand) {
   return result;
 };
 
+/**
+ * Hand.prototype.beats - method available on all instances of Hand / instances that inherit from Hand, returns true/false depending on whether 'this' hand beats the one provided as argument to the method
+ * @param {Object} compareHand - this parameter must be an instance of Hand otherwise it will not work
+ * @returns {Boolean}
+ * */
+
 Hand.prototype.beats = function(compareHand) {
   if (this.compare(compareHand) > 0) {
     return true;
@@ -63,12 +69,24 @@ Hand.prototype.beats = function(compareHand) {
   return false;
 };
 
+/**
+ * Hand.prototype.losesTo - method available on all instances of Hand / instances that inherit from Hand, returns true/false depending on whether 'this' hand loses to the one provided as argument to the method
+ * @param {Object} compareHand - this parameter must be an instance of Hand otherwise it will not work
+ * @returns {Boolean}
+ * */
+
 Hand.prototype.losesTo = function(compareHand) {
   if (this.compare(compareHand) < 0) {
     return true;
   }
   return false;
 };
+
+/**
+ * Hand.prototype.ties - method available on all instances of Hand / instances that inherit from Hand, returns true/false depending on whether 'this' hand ties with the one provided as argument to the method
+ * @param {Object} compareHand - this parameter must be an instance of Hand otherwise it will not work
+ * @returns {Boolean}
+ * */
 
 Hand.prototype.ties = function(compareHand) {
   if (this.compare(compareHand) === 0) {
@@ -85,7 +103,8 @@ Hand.prototype.toString = function() {
 };
 
 /**
- * Hand.make takes an array of cards and goes through to find the highest possible hand
+ * Hand.make - takes an array of cards and goes through to find the highest possible hand
+ * Sample usage : Hand.make(['Ac','Ad','Kc','5s','3d','9s','10h'])
  * @param {Array} cards - takes an array of strings (accepted format: 'Ac' for 'Ace of Clubs') or an array of 7 instances of Cards
  * @returns {Object} returns a hand
  * */
@@ -102,6 +121,13 @@ Hand.make = function(cards) {
     }
   }
 };
+
+/**
+ * Hand.pickWinners - takes an array of instances of Hand and picks the winner out of all hands
+ * Sample usage : Hand.pickWinners([Hand.make(['Ac','Ad','Kc','5s','3d','9s','10h'], Hand.make(['Ac','Ad','Kc','5s','3d','2s','4h']))])
+ * @param {Array} hands - array of instances of Hand
+ * @returns {Object}
+ * */
 
 Hand.pickWinners = function(hands) {
   var arrayOfRanks = hands.map(function(hand) {
@@ -303,6 +329,7 @@ Straight.prototype.isPossible = function() {
     return card.value === 'A';
   });
 
+  //if aces exist in the cards provided, add a new card with lowest ranking to beginning of array in case it is a 'wheel'
   if (aceIndex >= 0) {
     this.allCards.unshift(new Card('1', this.allCards[aceIndex].suit));
   }
